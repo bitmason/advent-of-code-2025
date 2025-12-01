@@ -11,11 +11,6 @@
     	(file:close)
     	strings))
 
-(fn divmod [a b]
-	" Return (f m) for a/b,
-	  where f is floor of the integer division and m is the remainder."
-	(values (// a b) (% a b)))
-
 (fn relative-clicks [rotation]
 	" Return positve :R or negative :L clicks, given rotation string. "
 	(let [clicks (string.sub rotation 2)]
