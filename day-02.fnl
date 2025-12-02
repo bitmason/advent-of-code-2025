@@ -1,6 +1,6 @@
 #!/usr/bin/env fennel
 
-" Advent of Code 2025. Day 02. Solution by Darren Stone <dstone at bitmason dot com>. "
+" Advent of Code 2025. Day 02. Solution by Darren Stone. "
 
 (local util (include :util))
 
@@ -12,7 +12,7 @@
 			id-length (length id-string)]
 		(=	(string.sub id-string 1 (// id-length 2))
 			(string.sub id-string (+ (// id-length 2) 1)))))
-	
+
 (var part-one 0)
 (each [_ range (ipairs ranges)]
 	(let [[first last] (util.string-to-table range "-" tonumber)]

@@ -1,31 +1,66 @@
-; Advent of Code 2025. Utility functions by Darren Stone <dstone at bitmason dot com>.
+"Advent of Code 2025. Utility functions by Darren Stone. "
 
 (local M {})
+
+; +------------+
+; |  Terminal  |
+; +------------+
+
+(fn M.writef [...] 
+  " Lua (C-ish) format. "
+  (io.write (string.format ...))
+  (io.flush))
+
+; +-----------+
+; |  Strings  |
+; +-----------+
 
 (fn M.strf [...]
   " Lua (C-ish) format. "
   (string.format ...))
 
-(fn M.writef [...] 
-  " Lua (C-ish) format. "
-  (io.write (M.strf ...))
-  (io.flush))
-
 (fn M.string-strip [str]
-	" Strip whitespace. "
+  " Strip whitespace. "
     (string.match str "^%s*(.-)%s*$"))
 
-; NOTE: These two parsing routines (csv and other value) are probably overkill for
-; Advent of Code but I had them for other projects and they are seemingly bug-free.
+(fn M.string-to-table [s delimiter conversion-function]
+  " Return table of values from delimited string.
+    Default delimiter is space.
+    For space: runs of spaces are considered a single delimiter.
+    For other delimiters: split on delimiter, discard whitespace surrounding values, drop empty fields.    
+    NOTE: If a field is in quotes, the quotes are not stripped in the returned value.
+    If conversion-function supplied, it is applied to each value. "
+  (let [  delimiter (or delimiter " ")
+          out {}
+          convert (fn [v] (if conversion-function (conversion-function v) v))]
+    (if (= delimiter " ")
+        (each [field (string.gmatch s "%S+")] ; keep runs of non-space
+          (table.insert out (convert field)))
+        (do (var start 1) ; other delimiter
+            (let [delimiter-length (string.len delimiter)]
+              (var done false)
+              (while (not done)
+                (let [i (string.find s delimiter start true)]
+                  (if i
+                      (let [field (M.string-strip (string.sub s start (- i 1)))]
+                        ; discard empty field
+                        (if (not (= field ""))
+                          (table.insert out (convert field)))
+                        (set start (+ i delimiter-length)))
+                      (do (let [field (M.string-strip (string.sub s start))]
+                            (if (not (= field ""))
+                              (table.insert out (convert field))))
+                          (set done true))))))))
+  out))
 
 (fn M.csv-to-table [s conversion-function]
   " Return table of values from CSV string.
-  	Quotes are optional around values but if supplied then all chars
-  	withint quotes are preserved and those quotes are discarded.
-  	Empty fields are preserved (e.g. 3,4,,6) UNLESS the conversion-function
-  	returns nil (then the field is discarded).
-   	Whitespace outside/between values is discarded.
-   	If conversion-function supplied, it is applied to each value. "
+    Quotes are optional around values but if supplied then all chars
+    withint quotes are preserved and those quotes are discarded.
+    Empty fields are preserved (e.g. 3,4,,6) UNLESS the conversion-function
+    returns nil (then the field is discarded).
+    Whitespace outside/between values is discarded.
+    If conversion-function supplied, it is applied to each value. "
   (let [  out {}
           convert (fn [v] (if conversion-function (conversion-function v) v))]
     (var i 1)
@@ -34,7 +69,7 @@
       (var in-quotes false)
       (var field-quoted false)
 
-      (fn push-field [] ; insert helper
+      (fn push-field [] ; insert helper, factored out
         (let [value (if field-quoted
                         field ; quoted so keep as-is
                         (M.string-strip field))] ; unquoted so strip whitespace
@@ -72,35 +107,32 @@
       (push-field))
   out))
 
-(fn M.string-to-table [s delimiter conversion-function]
-  " Return table of values from delimited string.
-  	Default delimiter is space.
-   	For space: runs of spaces are considered a single delimiter.
-    For other delimiters: split on delimiter, discard whitespace surrounding values, drop empty fields.    
-    NOTE: If a field is in quotes, the quotes are not stripped in the returned value.
-   	If conversion-function supplied, it is applied to each value. "
-  (let [  delimiter (or delimiter " ")
-          out {}
-          convert (fn [v] (if conversion-function (conversion-function v) v))]
-    (if (= delimiter " ")
-        (each [field (string.gmatch s "%S+")] ; keep runs of non-space
-          (table.insert out (convert field)))
-        (do (var start 1) ; other delimiter
-            (let [delimiter-length (string.len delimiter)]
-              (var done false)
-              (while (not done)
-                (let [i (string.find s delimiter start true)]
-                  (if i
-                      (let [field (M.string-strip (string.sub s start (- i 1)))]
-                        ; discard empty field
-                        (if (not (= field ""))
-                          (table.insert out (convert field)))
-                        (set start (+ i delimiter-length)))
-                      (do (let [field (M.string-strip (string.sub s start))]
-                            (if (not (= field ""))
-                              (table.insert out (convert field))))
-                          (set done true))))))))
-  out))
+; +---------+
+; |  Files  |
+; +---------+
+
+(fn M.file-write [filename contents]
+  (let [f (io.open filename "w")]
+  (assert f (.. "Can't open file for writing: " filename))
+  (f:write contents)
+  (f:close)))
+
+(fn M.file-append [filename contents]
+  (let [f (io.open filename "a")]
+  (assert f (.. "Can't open file for appending: " filename))
+  (f:write contents)
+  (f:close)))
+
+(fn M.file-read [filename default]
+  " Read and return contents of file at path as a string, or return default if file not found. "
+  (let [f (io.open filename "r")]
+    (if f
+      (let [contents (f:read "*a")]
+        (f:close)
+        contents)
+      (if default
+        default
+        (assert f (.. "Can't open file for reading: " filename))))))
 
 (fn M.file-read-lines [filename]
 	" Return table of strings, one for each line of the given file. "
@@ -130,6 +162,10 @@
     		(table.insert tables (M.string-to-table line delimiter conversion-function)))
     	(file:close)
     	tables))
+
+; +---------+
+; | Numbers |
+; +---------+
 
 (fn M.divmod [a b]
 	" Return (f m) for a/b,

@@ -1,6 +1,6 @@
 #!/usr/bin/env fennel
 
-" Advent of Code 2025. Day 01. Solution by Darren Stone <dstone at bitmason dot com>. "
+" Advent of Code 2025. Day 01. Solution by Darren Stone. "
 
 (local util (include :util))
 
