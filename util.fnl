@@ -11,9 +11,39 @@
   (io.write (string.format ...))
   (io.flush))
 
+; +----------+
+; |  Tables  |
+; +----------+
+
+(fn M.table-values-non-nil-count [t]
+  (var count 0)
+  (each [k v (pairs t)]
+    (when (not (= v nil))
+      (set count (+ count 1))))
+  count)
+
 ; +-----------+
 ; |  Strings  |
 ; +-----------+
+
+(fn M.string-remove-char-at [s i]
+  (.. (string.sub s 1 (- i 1))
+      (string.sub s (+ i 1))))
+
+(fn M.string-replace-char-at [s i c]
+  (.. (string.sub s 1 (- i 1))
+      c
+      (string.sub s (+ i 1))))
+
+(fn M.string-char-max [s]
+    " Single character (string) of max comparison value. "
+    " TODO: simplify this! "
+    (var max (string.sub s 1 1))
+    (for [i 2 (string.len s)]
+        (let [c (string.sub s i i)]
+            (when (> (string.byte c) (string.byte max))
+                (set max c))))
+    max)
 
 (fn M.strf [...]
   " Lua (C-ish) format. "
