@@ -4,7 +4,7 @@
 
 (local util (include :util))
 
-(local map (util.file-read-array2d-chars "example.txt"))
+(local map (util.file-read-array2d-chars "input.txt"))
 
 (fn empty-at [map x y] 
     (if (or (< x 1) (> x (util.array2d-width map)) (< y 1) (> y (util.array2d-height map))) ; out of bounds = empty
