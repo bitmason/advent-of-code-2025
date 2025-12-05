@@ -193,6 +193,52 @@
     	(file:close)
     	tables))
 
+(fn M.file-read-array2d-chars [filename]
+  " Return row-major table of tables, one char per element.
+    i.e. One row per line, one column per char (column) in each row.
+    Use array2d- functions for access. "
+  (let [lines (M.file-read-lines filename)]
+    (local map [])
+    (for [y 1 (length lines)]
+      (tset map y [])
+      (for [x 1 (length (. lines 1))]
+        (tset (. map y) x (string.sub (. lines y) x x))))
+    map))
+
+; +---------+
+; | Array2D |
+; +---------+
+; Row-major table of tables. (Any type for elements.)
+
+(fn M.array2d-width [a] (length (. a 1)))
+
+(fn M.array2d-height [a] (length a))
+
+(fn M.array2d-get [a x y] (. (. a y) x))
+
+(fn M.array2d-set [a x y v] (tset (. a y) x v))
+
+(fn M.array2d-print [a alt-tostring]
+  " Print the 2D array. Each element rendered with tostring unless alt provided. "
+  (let [stringify (or alt-tostring tostring)]
+    (for [y 1 (M.array2d-height a)]
+        (for [x 1 (M.array2d-width a)]
+            (M.writef "%s" (stringify (M.array2d-get a x y))))
+        (M.writef "\n"))))
+
+(fn M.array2d-copy-deep [map]
+  (local new-map [])
+  (for [y 1 (M.array2d-height map)]
+      (tset new-map y [])
+      (for [x 1 (M.array2d-width map)]
+          (tset (. new-map y) x (M.array2d-get map x y))))
+  new-map)
+
+(tset M :array2d-adj-offsets [
+    [-1 -1] [0 -1] [1 -1]
+    [-1 0]         [1 0]
+    [-1 1]  [0 1]  [1 1]])
+
 ; +---------+
 ; | Numbers |
 ; +---------+
