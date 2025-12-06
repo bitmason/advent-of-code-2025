@@ -22,6 +22,13 @@
       (set count (+ count 1))))
   count)
 
+(fn table-repeating [value n]
+    " Return table of given value repeated n times. "
+    (var t [])
+    (for [i 1 n]
+        (table.insert t value))
+    t)
+
 ; +-----------+
 ; |  Strings  |
 ; +-----------+
