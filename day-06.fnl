@@ -1,30 +1,35 @@
 #!/usr/bin/env fennel
 
-" Advent of Code 2025. Day 06. Solution by Darren Stone. "
+; Advent of Code 2025. Day 06. Solution by Darren Stone.
 
 (local util (include :util))
-
 (local filename "input.txt")
+
+; Part One
 (local numbers (let [raw (util.file-read-lines-of-values filename " " tonumber)] (table.remove raw (length raw)) raw))
 (local operators (let [raw (util.file-read-lines-of-values filename)] (. raw (length raw))))
 (local num-cols (length (. numbers 1)))
-
 (var answers [])
-(var col-op nil)
+(var col-ops [])
+(var col-inits [])
 (for [col 1 num-cols]
     (tset answers col 
         (if (= (. operators col) "+")
-                (do (set col-op (fn [a b] (+ a b)))
+                (do (tset col-ops col (fn [a b] (+ a b)))
+                    (tset col-inits col 0)
                     0)
             (= (. operators col) "*")
-                (do (set col-op (fn [a b] (* a b)))
+                (do (tset col-ops col (fn [a b] (* a b)))
+                    (tset col-inits col 1)
                     1)))
     (for [row 1 (length numbers)]
-        (tset answers col (col-op (. answers col) (. (. numbers row) col)))))
+        (tset answers col ((. col-ops col) (. answers col) (. (. numbers row) col)))))
 (var part-one 0)
-(for [col 1 num-cols] (set part-one (+ part-one (. answers col))))
+(for [col 1 num-cols] 
+    (set part-one (+ part-one (. answers col))))
 (util.writef "Part One: %d\n" part-one)
 
+; Part Two
 (local lines (util.file-read-lines filename))
 (local number-lines (let [raw (util.file-read-lines filename)] (table.remove raw (length raw)) raw))
 (var col-starts [])
@@ -36,21 +41,15 @@
         (if (~= c 1)
             (table.insert col-ends (- c 2)))))
 (table.insert col-ends (length operators-raw))
-
 (set answers [])
 (for [col 1 num-cols]
-    (tset answers col 
-        (if (= (. operators col) "+")
-                (do (set col-op (fn [a b] (+ a b)))
-                    0)
-            (= (. operators col) "*")
-                (do (set col-op (fn [a b] (* a b)))
-                    1)))
+    (tset answers col (. col-inits col))
     (for [c (. col-starts col) (. col-ends col)]
         (var c-number "")
         (for [r 1 (length number-lines)]
             (set c-number (.. c-number (string.sub (. number-lines r) c c))))
-        (tset answers col (col-op (. answers col) (tonumber c-number)))))
+        (tset answers col ((. col-ops col) (. answers col) (tonumber c-number)))))
 (var part-two 0)
-(for [col 1 num-cols] (set part-two (+ part-two (. answers col))))
+(for [col 1 num-cols] 
+    (set part-two (+ part-two (. answers col))))
 (util.writef "Part Two: %d\n" part-two)
