@@ -11,6 +11,12 @@
   (io.write (string.format ...))
   (io.flush))
 
+(fn M.term-clear-and-cursor-home []
+  (io.write "\027[2J\027[H"))
+
+(fn M.term-cursor-home []
+  (io.write "\027[H"))
+
 ; +----------+
 ; |  Tables  |
 ; +----------+
@@ -23,11 +29,21 @@
   count)
 
 (fn table-repeating [value n]
-    " Return table of given value repeated n times. "
-    (var t [])
-    (for [i 1 n]
-        (table.insert t value))
-    t)
+  " Return table of given value repeated n times. "
+  (var t [])
+  (for [i 1 n]
+      (table.insert t value))
+  t)
+
+(fn M.table-contains? [t v]
+  " Return true iff t contains v.
+    TODO: add optional comparison function
+    TODO: ensure this works for sequential & non-sequential & key-value scenarios "
+  (var found false)
+  (each [_ w (pairs t)]
+    (when (= w v)
+      (set found true)))
+  found)
 
 ; +-----------+
 ; |  Strings  |
@@ -181,11 +197,11 @@
     	strings))
 
 (fn M.file-read-lines-of-csv [filename conversion-function]
-	" Return table of tables: one table of command separated values per line of the given file. 
+	" Return table of tables: one table of comma separated values per line of the given file. 
 	  See csv-to-table for more. "
 	(let [tables {}
           file (assert (io.open filename "r") (.. "Can't open file: " filename))]
-    	(each [line (file:lines)] 
+    	(each [line (file:lines)]
     		(table.insert tables (M.csv-to-table line conversion-function)))
     	(file:close)
     	tables))
