@@ -5,8 +5,6 @@
 (local u (include :util))
 (local filename "input.txt")
 
-(local fennel (include :fennel))
-
 (local red-tiles (u.file-read-lines-of-csv filename (fn [n] (assert (tonumber n)))))
 (local red-tile-count (length red-tiles))
 
